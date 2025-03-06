@@ -1,1 +1,5 @@
-spring.application.name=Order-Api
+spring:
+  profiles:
+    active: dev
+  application:
+    name: Order-Api
