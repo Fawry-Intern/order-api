@@ -49,6 +49,9 @@ After researching best practices for distributed systems, I adopted the Choreogr
 - Ensures consistency with local transactions for each service.
 - Provides a clear compensation flow for handling failures.
 
+### Order UML Class Digram
+![Order UML Class](https://github.com/Fawry-Intern/.github/blob/main/images/Order%20Digram.drawio.png)
+
 ### API Flow (Alternative Approach)
 I also explored an API-based approach for some interactions, which is useful for synchronous calls.
 
