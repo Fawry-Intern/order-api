@@ -8,8 +8,6 @@ import java.util.Set;
 
 @Builder
 public record OrderRequest(
-        Long userId,
-        String customerEmail,
         String customerName,
         String customerContact,
         AddressDetails addressDetails,

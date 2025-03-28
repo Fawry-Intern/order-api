@@ -6,12 +6,14 @@ import com.fawry.order_api.dto.dtos.OrderRequest;
 import com.fawry.order_api.dto.dtos.OrderResponse;
 import com.fawry.order_api.dto.enums.OrderSagaStatus;
 import com.fawry.order_api.entities.Order;
+import com.fawry.order_api.exceptions.IllegalActionException;
 import com.fawry.order_api.mapper.OrderMapper;
 import com.fawry.order_api.repositories.OrderRepository;
 import com.fawry.order_api.services.OrderDiscountService;
 import com.fawry.order_api.services.OrderService;
 import com.fawry.order_api.services.OrderCreationSaga;
 import com.fawry.order_api.services.OrderCancellationSaga;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,7 @@ public class SagaOrderServiceImpl implements OrderCreationSaga, OrderCancellatio
     private final OrderDiscountService couponService;
     private final PlatformTransactionManager transactionManager;
     private final OrderEventProducer producer;
+    private final HttpServletRequest httpServletRequest;
 
     @Override
     public OrderResponse createOrder(OrderRequest request) {
@@ -40,8 +43,9 @@ public class SagaOrderServiceImpl implements OrderCreationSaga, OrderCancellatio
         }
         applyCouponWithTransaction(order);
 
+        if(httpServletRequest.getHeader("Email")==null) throw new IllegalActionException("Email header is missing");
         var orderCreatedEvent = mapper.mapFromOrderToOrderCreatedEvent(order,
-                request.customerEmail(),
+                httpServletRequest.getHeader("Email") ,
                 request.customerName(),
                 request.customerContact(),
                 request.addressDetails(),
@@ -78,8 +82,9 @@ public class SagaOrderServiceImpl implements OrderCreationSaga, OrderCancellatio
     }
 
     private Order newInstance(OrderRequest request) {
+        Long userId=parseUserId(httpServletRequest.getHeader("UserId"));
         return Order.newInstance(
-                request.userId(),
+                userId,
                 request.totalAmount(),
                 request.couponCode(),
                 request.orderItems()
@@ -121,6 +126,21 @@ public class SagaOrderServiceImpl implements OrderCreationSaga, OrderCancellatio
     private Order findOrderById(Long orderId) {
         return repository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found by id: " + orderId));
+    }
+
+    private Long parseUserId (String id)
+    {
+        if (id == null) {
+            throw new IllegalActionException("UserId header is missing");
+        }
+
+        Long authUserId;
+        try {
+            authUserId = Long.parseLong(id);
+        } catch (NumberFormatException e) {
+            throw new IllegalActionException("Invalid UserId format");
+        }
+        return authUserId;
     }
 }
 
