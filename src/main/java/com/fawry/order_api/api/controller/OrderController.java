@@ -5,6 +5,7 @@ import com.fawry.order_api.dto.dtos.OrderRequest;
 import com.fawry.order_api.dto.dtos.OrderResponse;
 import com.fawry.order_api.application.service.OrderService;
 import com.fawry.order_api.application.usecase.OrderSearchUseCase;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -24,8 +25,8 @@ public class OrderController {
 
 
     @PostMapping
-    public ResponseEntity<OrderResponse> createOrder(@RequestBody OrderRequest request) {
-        return ResponseEntity.ok(orderCreationSaga.createOrder(request));
+    public ResponseEntity<OrderResponse> createOrder(@Valid @RequestBody OrderRequest request) {
+        return ResponseEntity.ok(orderCreationSaga.createOrderSaga(request));
     }
 
     @GetMapping("/search-by-customer")

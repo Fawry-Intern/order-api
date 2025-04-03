@@ -3,7 +3,11 @@ package com.fawry.order_api.ports.outbound.coupon_service;
 import com.fawry.order_api.dto.dtos.DiscountDTO;
 import com.fawry.order_api.domain.model.Money;
 import com.fawry.order_api.domain.model.Order;
+import com.fawry.order_api.exception.CouponUnavailabilityException;
+import com.fawry.order_api.exception.InvalidCouponCodeException;
 import com.fawry.order_api.mapper.OrderMapper;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -16,25 +20,35 @@ public class OrderDiscountServiceUseCase implements OrderDiscountService {
 
     private final CouponClient client;
     private final OrderMapper mapper;
+    private static final String COUPON_SERVICE = "couponService";
 
     @Override
+    @CircuitBreaker(name = COUPON_SERVICE, fallbackMethod = "applyCouponFallback")
+    @Retry(name = COUPON_SERVICE)
     public void applyCoupon(Order order) {
         var couponRequest = mapper.mapOrderToConsumeCouponRequest(order);
 
         try {
             ResponseEntity<DiscountDTO> response = client.consumeCoupon(couponRequest);
-
-            log.info("Order total amount before discount{}:", order.getPaymentAmount().getAmount());
-            if(response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+            log.info("Order total amount before discount: {}", order.getPaymentAmount().getAmount());
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 DiscountDTO discountDTO = response.getBody();
                 applyDiscount(order, discountDTO);
                 log.info("Coupon {} applied successfully, discount: {}", order.getCouponCode(), discountDTO.getActualDiscount());
+            } else {
+                log.error("Invalid coupon response for order {}: Status {}", order.getOrderId(), response.getStatusCode());
+                throw new InvalidCouponCodeException("Invalid coupon response from service");
             }
-            log.info("Order total amount after discount{}:", order.getPaymentAmount().getAmount());
-        }catch (Exception e) {
+            log.info("Order total amount after discount: {}", order.getPaymentAmount().getAmount());
+        } catch (Exception e) {
             log.error("Failed to consume coupon {} for order {}: {}", order.getCouponCode(), order.getOrderId(), e.getMessage());
-            throw new RuntimeException("Coupon service unavailable or invalid coupon", e);
+            throw new CouponUnavailabilityException("Coupon service unavailable or invalid coupon");
         }
+    }
+
+    public void applyCouponFallback(Order order, Throwable t) {
+        log.warn("Coupon service unavailable for order {}. Proceeding without discount. Error: {}", order.getOrderId(), t.getMessage());
+        throw new CouponUnavailabilityException("Coupon service unavailable for order");
     }
 
     private void applyDiscount(Order order, DiscountDTO discountDTO) {

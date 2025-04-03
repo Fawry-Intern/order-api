@@ -45,3 +45,27 @@ custom:
     topic:
       name: order-events
       total_partitions: 5
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      couponService:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+        registerHealthIndicator: true
+  retry:
+    instances:
+      couponService:
+        maxRetryAttempts: 3
+        waitDuration: 500
+        enableRandomizedWait: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics
+  endpoint:
+    metrics:
+      enabled: true

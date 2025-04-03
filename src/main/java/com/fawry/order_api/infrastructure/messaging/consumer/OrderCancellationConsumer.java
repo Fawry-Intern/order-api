@@ -19,6 +19,6 @@ public class OrderCancellationConsumer {
 
         log.info("Store cancellation process successfully {}", orderCanceledEventDTO);
 
-        orderCancellationSaga.cancelOrder(orderCanceledEventDTO.getOrderId(), orderCanceledEventDTO.getReason(), orderCanceledEventDTO.getCustomerEmail());
+        orderCancellationSaga.cancelOrderSaga(orderCanceledEventDTO.getOrderId(), orderCanceledEventDTO.getReason(), orderCanceledEventDTO.getCustomerEmail());
     }
 }

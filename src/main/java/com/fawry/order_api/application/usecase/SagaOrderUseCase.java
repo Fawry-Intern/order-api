@@ -2,6 +2,7 @@ package com.fawry.order_api.application.usecase;
 
 import com.fawry.kafka.events.OrderCancelNotificationEvent;
 import com.fawry.kafka.events.OrderCreatedEventDTO;
+import com.fawry.order_api.exception.CouponUnavailabilityException;
 import com.fawry.order_api.infrastructure.messaging.producer.impl.OrderEventProducer;
 import com.fawry.order_api.domain.service.OrderCancellationSagaService;
 import com.fawry.order_api.domain.service.OrderCreationSagaService;
@@ -41,7 +42,7 @@ public class SagaOrderUseCase implements OrderCreationSagaService, OrderCancella
     private final OrderUserAuth orderUserAuth;
 
     @Override
-    public OrderResponse createOrder(OrderRequest request) {
+    public OrderResponse createOrderSaga(OrderRequest request) {
         Long userId = orderUserAuth.parseUserId();
         var order = newInstance(request, userId);
         saveOrderWithTransaction(order);
@@ -49,19 +50,22 @@ public class SagaOrderUseCase implements OrderCreationSagaService, OrderCancella
         if (!request.isCouponCodeValid()) {
             throw new InvalidCouponCodeException(ErrorMessages.INVALID_COUPON_CODE);
         }
-        applyCouponWithTransaction(order);
+        try {
+            applyCouponWithTransaction(order);
+        }catch (Exception e){
+            log.error("Failed to apply coupon for order {}. Cancelling order.", order.getOrderId());
+            cancelOrderSaga(order.getOrderId(), "Failed to apply coupon due to service unavailability", getCustomerEmail());
+            throw new CouponUnavailabilityException("Failed to apply coupon, order  cancelled");
+        }
 
-
-        String customerEmail = orderUserAuth.parseUserEmail();
-
-        var orderCreatedEvent = mapToOrderCreatedEventDto(order, customerEmail, request);
+        var orderCreatedEvent = mapToOrderCreatedEventDto(order, getCustomerEmail(), request);
         producer.processEventProducer(orderCreatedEvent, order.hashCode());
 
         return mapToOrderResponse(order);
     }
 
     @Override
-    public void cancelOrder(Long orderId, String reason, String customerEmail) {
+    public void cancelOrderSaga(Long orderId, String reason, String customerEmail) {
         Order order;
         TransactionStatus status = transactionManager.getTransaction(new DefaultTransactionDefinition());
         try {
@@ -141,6 +145,10 @@ public class SagaOrderUseCase implements OrderCreationSagaService, OrderCancella
                 request.orderItems(),
                 request.paymentMethod()
         );
+    }
+
+    public String getCustomerEmail() {
+        return orderUserAuth.parseUserEmail();
     }
 }
 
