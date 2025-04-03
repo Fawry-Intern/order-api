@@ -13,6 +13,7 @@ import java.util.Set;
 import static com.fawry.order_api.dto.enums.OrderSagaStatus.CANCELED;
 import static com.fawry.order_api.dto.enums.OrderSagaStatus.RECEIVED;
 
+@Setter
 @Getter
 @Entity
 @Table(name = "orders")
@@ -50,7 +51,7 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<OrderItem> orderItems;
 
-    private Order() {
+    public Order() {
     }
 
     public static Order newInstance(Long userId,

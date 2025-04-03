@@ -22,6 +22,20 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(CouponUnavailabilityException.class)
+    public ResponseEntity<ErrorResponse> handleCouponUnavailabilityException(CouponUnavailabilityException ex, WebRequest request) {
+        log.error("COUPON SERVICE DOWN: {}", ex.getMessage(), ex);
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), ErrorCode.COUPON_SERVICE_UNAVAILABLE);
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidCouponCodeException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidCouponCodeException(InvalidCouponCodeException ex, WebRequest request) {
+        log.error("Invalid coupon: {}", ex.getMessage(), ex);
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), ErrorCode.COUPON_SERVICE_UNAVAILABLE);
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex, WebRequest request) {
         String message = ex.getBindingResult().getFieldErrors().stream()

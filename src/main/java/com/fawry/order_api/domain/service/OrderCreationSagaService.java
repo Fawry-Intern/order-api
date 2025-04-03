@@ -4,5 +4,5 @@ import com.fawry.order_api.dto.dtos.OrderRequest;
 import com.fawry.order_api.dto.dtos.OrderResponse;
 
 public interface OrderCreationSagaService {
-    OrderResponse createOrder(OrderRequest request);
+    OrderResponse createOrderSaga(OrderRequest request);
 }

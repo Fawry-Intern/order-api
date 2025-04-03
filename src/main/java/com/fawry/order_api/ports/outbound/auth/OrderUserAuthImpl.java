@@ -1,5 +1,6 @@
 package com.fawry.order_api.ports.outbound.auth;
 
+import com.fawry.order_api.exception.AuthenticationUserException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,15 +17,15 @@ public class OrderUserAuthImpl implements OrderUserAuth {
 //        String userId=httpServletRequest.getHeader("UserId");
 //
 //        if (userId == null) {
-//            throw new IllegalActionException("UserId header is missing");
+//            throw new AuthenticationUserException("UserId header is missing",);
 //        }
 //
 //        Long authUserId;
 //
 //        try {
 //            authUserId = Long.parseLong(userId);
-//        } catch (NumberFormatException e) {
-//            throw new IllegalActionException("Invalid UserId format");
+//        } catch (Exception e) {
+//            throw new AuthenticationUserException("Invalid UserId format");
 //        }
 //        return authUserId;
         return 1L;
