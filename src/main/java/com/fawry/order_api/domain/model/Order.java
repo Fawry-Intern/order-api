@@ -13,7 +13,10 @@ import java.util.Set;
 import static com.fawry.order_api.dto.enums.OrderSagaStatus.CANCELED;
 import static com.fawry.order_api.dto.enums.OrderSagaStatus.RECEIVED;
 
-@Setter
+@NamedEntityGraph(
+        name = "Order.withOrderItems",
+        attributeNodes = @NamedAttributeNode("orderItems")
+)
 @Getter
 @Entity
 @Table(name = "orders")
@@ -48,10 +51,10 @@ public class Order {
     @Column(name = "updated_at")
     private Instant updatedAt;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<OrderItem> orderItems;
 
-    public Order() {
+    private Order() {
     }
 
     public static Order newInstance(Long userId,
