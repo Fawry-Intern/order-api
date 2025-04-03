@@ -24,14 +24,14 @@ spring:
     consumer:
       enable-auto-commit: true
       bootstrap-servers: localhost:9092
-      group-id: notification_id
+      group-id: order_store_id
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         allow.auto.create.topics: true
         spring.json.trusted.packages: "com.fawry.kafka.events"
-        spring.json.type.mapping:
+        spring.json.type.mapping: orderCreatedEventDTO:com.fawry.kafka.events.OrderCanceledEventDTO
 
     producer:
       bootstrap-servers: localhost:9092
@@ -39,7 +39,7 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
         spring.json.add.type.headers: true
-        spring.json.type.mapping: orderCreatedEventDTO:com.fawry.kafka.events.OrderCreatedEventDTO, orderCanceledEventDTO:com.fawry.kafka.events.OrderCanceledEventDTO
+        spring.json.type.mapping: orderCreatedEventDTO:com.fawry.kafka.events.OrderCreatedEventDTO, orderCancelNotificationEvent:com.fawry.kafka.events.OrderCancelNotificationEvent
 custom:
   order:
     topic:

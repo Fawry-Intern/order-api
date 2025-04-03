@@ -1,64 +1,46 @@
 package com.fawry.kafka.events;
 
-import com.fawry.kafka.dto.enums.SagaEventType;
 import com.fawry.order_api.dto.dtos.AddressDetails;
+import com.fawry.order_api.dto.dtos.OrderItemDTO;
 import com.fawry.order_api.dto.dtos.PaymentMethod;
-import com.fawry.order_api.dto.enums.OrderSagaStatus;
-import com.fawry.order_api.entities.OrderItem;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 
+import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.Set;
+import java.util.List;
 
-public class OrderCreatedEventDTO extends OrderSagaEvent {
+
+@RequiredArgsConstructor
+@Getter
+@ToString
+public class OrderCreatedEventDTO implements Serializable {
+    private final Long orderId;
     private final Long userId;
-    private final SagaEventType sagaEventType;
-    private final OrderSagaStatus status;
+    private final String sagaEventType;
+    private final String status;
     private final String customerEmail;
     private final String customerName;
     private final String customerContact;
     private final AddressDetails addressDetails;
     private final BigDecimal paymentAmount;
-    private final Set<OrderItem> orderItems;
+    private final List<OrderItemDTO> orderItems;
     private final PaymentMethod paymentMethod;
 
-    public OrderCreatedEventDTO(Long orderId,
-                                Long userId,
-                                SagaEventType sagaEventType,
-                                OrderSagaStatus status,
-                                String customerEmail,
-                                String customerName,
-                                String customerContact,
-                                AddressDetails addressDetails,
-                                BigDecimal paymentAmount,
-                                Set<OrderItem> orderItems,
-                                PaymentMethod paymentMethod) {
-        super(orderId);
-        this.userId = userId;
-        this.sagaEventType = sagaEventType;
-        this.status = status;
-        this.customerEmail = customerEmail;
-        this.customerName = customerName;
-        this.customerContact = customerContact;
-        this.addressDetails = addressDetails;
-        this.paymentAmount = paymentAmount;
-        this.orderItems = orderItems;
-        this.paymentMethod = paymentMethod;
+    public static OrderCreatedEventDTO newInstance(Long orderId,
+                                                   Long userId,
+                                                   String sagaEventType,
+                                                   String status,
+                                                   String customerEmail,
+                                                   String customerName,
+                                                   String customerContact,
+                                                   AddressDetails addressDetails,
+                                                   BigDecimal paymentAmount,
+                                                   List<OrderItemDTO> orderItems,
+                                                   PaymentMethod paymentMethod) {
+        return new OrderCreatedEventDTO(orderId, userId, sagaEventType, status, customerEmail, customerName, customerContact, addressDetails, paymentAmount, orderItems, paymentMethod);
     }
 
-    @Override
-    public String toString() {
-        return "OrderCreatedSagaEvent{" +
-                "userId=" + userId +
-                ", sagaEventType=" + sagaEventType +
-                ", status=" + status +
-                ", customerEmail='" + customerEmail + '\'' +
-                ", customerName='" + customerName + '\'' +
-                ", customerContact='" + customerContact + '\'' +
-                ", addressDetails=" + addressDetails +
-                ", paymentAmount=" + paymentAmount +
-                ", orderItems=" + orderItems +
-                ", paymentMethod=" + paymentMethod +
-                '}';
-    }
 }

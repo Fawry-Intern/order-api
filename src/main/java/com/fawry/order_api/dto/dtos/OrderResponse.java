@@ -1,6 +1,6 @@
 package com.fawry.order_api.dto.dtos;
 
-import com.fawry.order_api.entities.OrderItem;
+import com.fawry.order_api.domain.model.OrderItem;
 import lombok.Builder;
 
 import java.math.BigDecimal;

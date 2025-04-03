@@ -1,0 +1,13 @@
+package com.fawry.order_api.dto.enums;
+
+public enum ErrorCode {
+    INVALID_TOTAL_AMOUNT,
+    INVALID_DISCOUNT,
+    INVALID_ORDER,
+    ORDER_NOT_FOUND,
+    INVALID_COUPON_CODE,
+    AUTHENTICATION_FAILED,
+    ORDER_API_ERROR,
+    UNEXPECTED_ERROR,
+    VALIDATION_ERROR
+}
