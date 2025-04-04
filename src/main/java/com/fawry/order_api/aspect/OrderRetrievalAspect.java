@@ -1,12 +1,13 @@
 package com.fawry.order_api.aspect;
 
 
-import com.fawry.order_api.dto.dtos.OrderResponse;
+import com.fawry.order_api.dto.dtos.OrderCreationResponse;
 import com.fawry.order_api.exception.OrderNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.List;
 @Aspect
 @Component
 @Slf4j
+@Profile("dev")
 public class OrderRetrievalAspect {
 
     @Around("execution(* com.fawry.order_api.application.usecase.OrderSearchUseCase.getOrderById(..))")
@@ -94,7 +96,7 @@ public class OrderRetrievalAspect {
 
         try {
             Object result = joinPoint.proceed();
-            List<OrderResponse> orderResponses = (List<OrderResponse>) result;
+            List<OrderCreationResponse> orderResponses = (List<OrderCreationResponse>) result;
 
             long executionTime = System.currentTimeMillis() - startTime;
             log.info("searchOrdersByUserIdAndDateRange completed successfully for userId: {} in {} ms. Found {} orders",

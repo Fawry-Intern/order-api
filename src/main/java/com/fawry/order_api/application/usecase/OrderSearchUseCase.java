@@ -1,6 +1,6 @@
 package com.fawry.order_api.application.usecase;
 
-import com.fawry.order_api.dto.dtos.OrderResponse;
+import com.fawry.order_api.dto.dtos.OrderCreationResponse;
 import com.fawry.order_api.exception.OrderNotFoundException;
 import com.fawry.order_api.mapper.OrderMapper;
 import com.fawry.order_api.domain.model.Order;
@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,20 +24,22 @@ import java.util.stream.Collectors;
 public class OrderSearchUseCase implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
+    private final Executor orderTaskExecutor;
 
     @Override
-    public OrderResponse getOrderById(Long orderId) {
+    public OrderCreationResponse getOrderById(Long orderId) {
         var order= orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(orderId));
         return orderMapper.mapOrderToOrderResponse(order);
     }
 
     @Override
-    public List<OrderResponse> searchOrdersByUserIdAndDateRange(Long userId, Instant startDate, Instant endDate, int page, int size) {
+    public List<OrderCreationResponse> searchOrdersByUserIdAndDateRange(Long userId, Instant startDate, Instant endDate, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Order> ordersPage = orderRepository.findByUserIdAndDateRange(userId, startDate, endDate, pageable);
         return ordersPage.stream()
                 .map(orderMapper::mapOrderToOrderResponse)
                 .collect(Collectors.toList());
     }
+
 }

@@ -1,12 +1,8 @@
 package com.fawry.order_api.mapper;
 
+import com.fawry.order_api.dto.dtos.*;
 import com.fawry.order_api.dto.enums.SagaEventType;
 import com.fawry.kafka.events.OrderCreatedEventDTO;
-import com.fawry.order_api.dto.dtos.ConsumeCouponRequestDTO;
-import com.fawry.order_api.dto.dtos.AddressDetails;
-import com.fawry.order_api.dto.dtos.OrderItemDTO;
-import com.fawry.order_api.dto.dtos.OrderResponse;
-import com.fawry.order_api.dto.dtos.PaymentMethod;
 import com.fawry.order_api.dto.enums.OrderSagaStatus;
 import com.fawry.order_api.domain.model.Money;
 import com.fawry.order_api.domain.model.Order;
@@ -22,14 +18,13 @@ public class OrderMapper {
 
     public Set<OrderItem> mapToOrderItem(List<OrderItemDTO> orderItems) {
         return orderItems.stream().
-                map((orderItemDTO -> {
-                    return OrderItem.newInstance(orderItemDTO.getProductId(), orderItemDTO.getQuantity(), Money.of(orderItemDTO.getPrice()));
-                })).collect(Collectors.toSet());
+                map((orderItemDTO -> OrderItem.newInstance(orderItemDTO.getProductId(), orderItemDTO.getQuantity(), Money.of(orderItemDTO.getPrice())))).collect(Collectors.toSet());
     }
 
-    public OrderResponse mapOrderToOrderResponse(Order order) {
-        return OrderResponse.builder()
+    public OrderCreationResponse mapOrderToOrderResponse(Order order) {
+        return OrderCreationResponse.builder()
                 .orderId(order.getOrderId())
+                .status(order.getStatus())
                 .totalAmount(order.getPaymentAmount().getAmount())
                 .couponCode(order.getCouponCode())
                 .orderItem(order.getOrderItems())

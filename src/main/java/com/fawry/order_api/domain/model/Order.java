@@ -54,7 +54,7 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<OrderItem> orderItems;
 
-    private Order() {
+    public Order() {
     }
 
     public static Order newInstance(Long userId,

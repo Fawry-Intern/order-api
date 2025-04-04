@@ -10,11 +10,13 @@ import org.apache.commons.lang.ObjectUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Aspect
 @Component
 @Slf4j
+@Profile("dev")
 public class OrderSagaAspect {
 
     private final MeterRegistry meterRegistry;
@@ -29,7 +31,6 @@ public class OrderSagaAspect {
 
     @Around("execution(* com.fawry.order_api.application.usecase.SagaOrderUseCase.createOrderSaga(..))")
     public Object logAndMonitorOrderCreation(ProceedingJoinPoint joinPoint) throws Throwable {
-
         Object[] args = joinPoint.getArgs();
         if (args.length == 0 || !(args[0] instanceof OrderRequest request)){
             log.error("Invalid input for createOrderSaga: Expected OrderRequest, but got {}", args);

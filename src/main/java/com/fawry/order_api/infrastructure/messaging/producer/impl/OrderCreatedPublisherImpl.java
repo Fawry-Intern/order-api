@@ -29,7 +29,6 @@ public class OrderCreatedPublisherImpl implements OrderCreatedEventPublisher {
 
     @Override
     public void publishOrderCreatedEvent(OrderCreatedEventDTO createdEvent, int orderHash) {
-        log.info("Publish order event created to store to reserve the orderItems {}: ", createdEvent);
         Message<OrderCreatedEventDTO> message =
                 MessageBuilder
                         .withPayload(createdEvent)
