@@ -7,6 +7,8 @@ import com.fawry.order_api.infrastructure.messaging.producer.OrderCreatedEventPu
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 
@@ -18,8 +20,8 @@ public class OrderEventProducer <T>{
     private final OrderCreatedEventPublisher orderCreatedPublisher;
     private final OrderCancelEventPublisher orderCancellationPublisher;
 
+    @Retryable(maxAttempts = 3, backoff = @Backoff(delay = 1000, random = true))
     public void processEventProducer(T event, int orderHash) {
-        log.info("Event processing{}", event);
         if (event instanceof OrderCreatedEventDTO) {
             orderCreatedPublisher.publishOrderCreatedEvent((OrderCreatedEventDTO) event, orderHash);
         }else if (event instanceof OrderCancelNotificationEvent) {
