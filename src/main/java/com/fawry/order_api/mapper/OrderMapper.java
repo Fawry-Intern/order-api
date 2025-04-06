@@ -26,7 +26,7 @@ public class OrderMapper {
     }
     public Set<OrderItem> mapToOrderItem(List<OrderItemDTO> orderItems) {
         return orderItems.stream().
-                map((orderItemDTO -> OrderItem.newInstance(orderItemDTO.getProductId(), orderItemDTO.getQuantity(), Money.of(orderItemDTO.getPrice())))).collect(Collectors.toSet());
+                map((orderItemDTO -> OrderItem.newInstance(orderItemDTO.getStoreId(), orderItemDTO.getProductId(), orderItemDTO.getQuantity(), Money.of(orderItemDTO.getPrice())))).collect(Collectors.toSet());
     }
 
     public OrderCreationResponse mapOrderToOrderResponse(Order order) {
@@ -59,7 +59,7 @@ public class OrderMapper {
                 order.getOrderId(),
                 order.getUserId(),
                 SagaEventType.ORDER_CREATED.name(),
-                OrderSagaStatus.RECEIVED.name(),
+                OrderSagaStatus.CREATED.name(),
                 customerEmail,
                 customerName,
                 customerContact,

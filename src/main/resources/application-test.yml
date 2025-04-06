@@ -52,7 +52,10 @@ custom:
     topic:
       name: order-events
       total_partitions: 5
-
+configuration:
+  kafka:
+    scheduled: 5000
+    outbox-topic: outbox-topic
 resilience4j:
   circuitbreaker:
     instances:
