@@ -10,8 +10,7 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.Set;
 
-import static com.fawry.order_api.dto.enums.OrderSagaStatus.CANCELED;
-import static com.fawry.order_api.dto.enums.OrderSagaStatus.RECEIVED;
+import static com.fawry.order_api.dto.enums.OrderSagaStatus.*;
 
 @NamedEntityGraph(
         name = "Order.withOrderItems",
@@ -66,7 +65,7 @@ public class Order {
         order.userId = userId;
         order.paymentAmount = validateTotalAmount(paymentAmount, orderItems);
         order.couponCode = couponCode;
-        order.status = RECEIVED;
+        order.status = CREATED;
         order.orderItems = orderItems;
         orderItems.forEach((oi) -> {
             oi.addOrder(order);
@@ -100,7 +99,7 @@ public class Order {
     }
 
     public void cancel() {
-        if (this.status.equals(RECEIVED)) {
+        if (this.status.equals(CREATED)) {
             this.status = CANCELED;
         }
     }

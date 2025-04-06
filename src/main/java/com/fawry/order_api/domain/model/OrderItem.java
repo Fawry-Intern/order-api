@@ -14,6 +14,9 @@ public class OrderItem {
     @Column(name = "item_id")
     private Long itemId;
 
+    @Column(name = "store_id", nullable = false)
+    private Long storeId;
+
     @Column(name = "product_id", nullable = false)
     private Long productId;
 
@@ -34,8 +37,9 @@ public class OrderItem {
     private OrderItem() {
     }
 
-    public static OrderItem newInstance(Long productId, Integer quantity, Money price) {
+    public static OrderItem newInstance(Long storeId, Long productId, Integer quantity, Money price) {
         var orderItem = new OrderItem();
+        orderItem.storeId = storeId;
         orderItem.productId = productId;
         orderItem.quantity = quantity;
         orderItem.price = price;

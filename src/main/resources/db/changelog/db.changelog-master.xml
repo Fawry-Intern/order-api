@@ -25,4 +25,13 @@
         </preConditions>
         <sqlFile path="db/changelog/sql/order_items_table_v.1.1.1.sql"/>
     </changeSet>
+
+    <changeSet id="create_outbox_tbl" author="muhammad hussein" context="development">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="outbox"/>
+            </not>
+        </preConditions>
+        <sqlFile path="db/changelog/sql/outbox_table_v.1.1.2.sql"/>
+    </changeSet>
 </databaseChangeLog>
