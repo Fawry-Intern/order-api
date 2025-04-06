@@ -2,12 +2,13 @@ package com.fawry.order_api.application.usecase;
 
 import com.fawry.kafka.events.OrderCancelNotificationEvent;
 import com.fawry.kafka.events.OrderCreatedEventDTO;
+import com.fawry.order_api.domain.service.saga.OrderCompensationSagaService;
 import com.fawry.order_api.dto.dtos.DiscountDTO;
 import com.fawry.order_api.dto.dtos.OrderCreationResponse;
 import com.fawry.order_api.exception.CouponUnavailabilityException;
 import com.fawry.order_api.infrastructure.messaging.producer.impl.OrderEventProducer;
-import com.fawry.order_api.domain.service.OrderCancellationSagaService;
-import com.fawry.order_api.domain.service.OrderCreationSagaService;
+import com.fawry.order_api.domain.service.saga.OrderCancellationSagaService;
+import com.fawry.order_api.domain.service.saga.OrderCreationSagaService;
 import com.fawry.order_api.dto.dtos.OrderItemDTO;
 import com.fawry.order_api.dto.dtos.OrderRequest;
 import com.fawry.order_api.domain.model.Money;
@@ -21,6 +22,7 @@ import com.fawry.order_api.mapper.OrderMapper;
 import com.fawry.order_api.ports.outbound.coupon_service.OrderDiscountService;
 import com.fawry.order_api.ports.outbound.auth.OrderUserAuth;
 import com.fawry.order_api.infrastructure.repository.OrderRepository;
+import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -34,7 +36,7 @@ import java.util.concurrent.Executor;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class OrderSagaUseCase implements OrderCreationSagaService, OrderCancellationSagaService{
+public class OrderSagaUseCase implements OrderCreationSagaService, OrderCancellationSagaService, OrderCompensationSagaService {
 
     private final OrderRepository repository;
     private final OrderMapper mapper;
@@ -43,6 +45,8 @@ public class OrderSagaUseCase implements OrderCreationSagaService, OrderCancella
     private final OrderEventProducer<Object> producer;
     private final OrderUserAuth orderUserAuth;
     private final Executor orderTaskExecutor;
+    private final static int MAX_RETRIES = 3;
+
 
     @Override
     @Async("orderTaskExecutor")
@@ -59,7 +63,7 @@ public class OrderSagaUseCase implements OrderCreationSagaService, OrderCancella
             return CompletableFuture.completedFuture(mapToOrderResponse(order));
         }catch (Exception e) {
             log.error("Saga failed: {}", e.getMessage());
-            compensateFailedSaga(order, e, getCustomerEmail());
+            compensateFailedStartingSaga(order, e, getCustomerEmail());
             throw e;
         }
     }
@@ -92,7 +96,18 @@ public class OrderSagaUseCase implements OrderCreationSagaService, OrderCancella
                 });
     }
 
-    private void compensateFailedSaga(Order order, Exception e, String customerEmail) {
+    @Override
+    public void compensateOrder(Long orderId, String reason, String customerEmail) {
+        if (orderId != null && StringUtils.isNotBlank(reason) && StringUtils.isNotBlank(customerEmail)) {
+            try {
+                cancelOrderSaga(orderId, reason, customerEmail);
+            }catch (Exception exception) {
+                log.error("Compensation failed: {}", exception.getMessage());
+            }
+        }
+    }
+
+    private void compensateFailedStartingSaga(Order order, Exception e, String customerEmail) {
         if (order != null && order.getOrderId() != null) {
             try {
                 cancelOrderSaga(order.getOrderId(), e.getMessage(), customerEmail);
@@ -190,5 +205,6 @@ public class OrderSagaUseCase implements OrderCreationSagaService, OrderCancella
     public String getCustomerEmail() {
         return orderUserAuth.parseUserEmail();
     }
+
 }
 

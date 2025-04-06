@@ -1,9 +1,11 @@
 package com.fawry.order_api.api.controller;
 
-import com.fawry.order_api.domain.service.OrderCreationSagaService;
+import com.fawry.order_api.domain.service.saga.OrderCreationSagaService;
+import com.fawry.order_api.dto.dtos.OrderCreationJob;
 import com.fawry.order_api.dto.dtos.OrderCreationResponse;
 import com.fawry.order_api.dto.dtos.OrderRequest;
 import com.fawry.order_api.application.service.OrderService;
+import com.fawry.order_api.infrastructure.jobqueue.OrderJobProducer;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +13,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -24,13 +27,13 @@ public class OrderController {
 
     private final OrderService orderService;
     private final OrderCreationSagaService orderCreationSaga;
-
-
+    private final OrderJobProducer orderJobProducer;
 
     @PostMapping
-    public CompletableFuture<ResponseEntity<OrderCreationResponse>> createOrder(@Valid @RequestBody OrderRequest request) throws ExecutionException, InterruptedException {
+    public CompletableFuture<ResponseEntity<OrderCreationJob>> createOrder(@Valid @RequestBody OrderRequest request) throws ExecutionException, InterruptedException {
         log.info("Thread name is {} ", Thread.currentThread().getName());
-        return orderCreationSaga.createOrderSaga(request).thenApply(ResponseEntity::ok);
+        return orderJobProducer.addJob(request)
+                .thenApply((order) -> ResponseEntity.created(URI.create("orders")).body(order));
     }
 
     @GetMapping("/search-by-customer")

@@ -1,7 +1,7 @@
 package com.fawry.order_api.infrastructure.messaging.consumer;
 
 import com.fawry.kafka.events.OrderCanceledEventDTO;
-import com.fawry.order_api.domain.service.OrderCancellationSagaService;
+import com.fawry.order_api.domain.service.saga.OrderCompensationSagaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -12,13 +12,13 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class OrderCancellationConsumer {
 
-    private final OrderCancellationSagaService orderCancellationSaga;
+    private final OrderCompensationSagaService orderCompensationSagaService;
 
     @KafkaListener(topics = "store-events", groupId = "order_store_id")
     public void consumeStoreCancellation(OrderCanceledEventDTO orderCanceledEventDTO) {
 
         log.info("Store cancellation process successfully {}", orderCanceledEventDTO);
 
-        orderCancellationSaga.cancelOrderSaga(orderCanceledEventDTO.getOrderId(), orderCanceledEventDTO.getReason(), orderCanceledEventDTO.getCustomerEmail());
+        orderCompensationSagaService.compensateOrder(orderCanceledEventDTO.getOrderId(), orderCanceledEventDTO.getReason(), orderCanceledEventDTO.getCustomerEmail());
     }
 }

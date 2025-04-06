@@ -8,8 +8,10 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 
 
 @Builder(toBuilder = true)
@@ -36,9 +38,14 @@ public record OrderRequest(
 
         @NotNull(message = "Payment method must not be null")
         PaymentMethod paymentMethod
-) {
+) implements Serializable {
 
     public boolean isCouponCodeValid() {
         return couponCode != null && !couponCode.isBlank();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(customerName, customerContact);
     }
 }

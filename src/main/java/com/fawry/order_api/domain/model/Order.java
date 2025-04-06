@@ -29,6 +29,7 @@ public class Order {
     @Column(name = "order_id")
     private Long orderId;
 
+    @Setter
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
