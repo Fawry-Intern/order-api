@@ -16,6 +16,14 @@ import java.util.stream.Collectors;
 @Service
 public class OrderMapper {
 
+    public OrderCreationJob mapToOrderCreationJob(OrderRequest request) {
+        return OrderCreationJob.builder()
+                .orderItem(request.orderItems())
+                .status(OrderSagaStatus.PENDING)
+                .couponCode(request.couponCode())
+                .totalAmount(request.totalAmount())
+                .build();
+    }
     public Set<OrderItem> mapToOrderItem(List<OrderItemDTO> orderItems) {
         return orderItems.stream().
                 map((orderItemDTO -> OrderItem.newInstance(orderItemDTO.getProductId(), orderItemDTO.getQuantity(), Money.of(orderItemDTO.getPrice())))).collect(Collectors.toSet());

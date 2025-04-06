@@ -4,12 +4,13 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 @RequiredArgsConstructor
 @Getter
 @ToString
-public class OrderItemDTO {
+public class OrderItemDTO implements Serializable {
     private final Long storeId;
     private final Long productId;
     private final Integer quantity;

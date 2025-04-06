@@ -40,6 +40,13 @@ spring:
       properties:
         spring.json.add.type.headers: true
         spring.json.type.mapping: orderCreatedEventDTO:com.fawry.kafka.events.OrderCreatedEventDTO, orderCancelNotificationEvent:com.fawry.kafka.events.OrderCancelNotificationEvent
+  redis:
+    host: localhost
+    port: 6381
+redis:
+  job:
+   queue:
+     name: order-create-queue
 custom:
   order:
     topic:
