@@ -1,4 +1,4 @@
-package com.fawry.order_api.application.usecase;
+package com.fawry.order_api.infrastructure.outbox;
 
 import com.fawry.kafka.events.OrderCreatedEventDTO;
 import com.fawry.order_api.application.service.OutboxService;
@@ -13,34 +13,47 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionTemplate;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class OutboxServiceUseCase implements OutboxService {
+class ScheduledOutboxEventProcessor implements OutboxService {
     private final OrderEventProducer<Object> producer;
     private final OutboxRepository outboxRepository;
     private final OutboxMapper outboxMapper;
     private final OrderRepository orderRepository;
+    private final TransactionTemplate transactionTemplate;
 
     @Override
-    @Scheduled(fixedDelay = 5000)
+    @Scheduled(fixedDelayString = "${configuration.kafka.scheduled}")
     public void eventProcessing() {
-        List<Outbox> listOrOutboxEventEntities = new ArrayList<>();
-        outboxRepository.findAll().forEach(listOrOutboxEventEntities::add);
-        log.info("Number of outbox events: {}", listOrOutboxEventEntities.size());
-
-        if (!listOrOutboxEventEntities.isEmpty()) {
-            for (Outbox outbox : listOrOutboxEventEntities) {
-                Order order = orderRepository.findWithOrderItemsById(outbox.getOrderId())
-                                .orElseThrow(() -> new OrderNotFoundException(outbox.getOrderId()));
-                sendEventToKafka(outbox, order);
-                outboxRepository.deleteById(outbox.getId());
-            }
+        boolean isFailedProcessing = true;
+        while (isFailedProcessing) {
+            isFailedProcessing = Boolean.TRUE.equals(transactionTemplate.execute(this::doInTransaction));
         }
+
+    }
+
+    private Boolean doInTransaction(TransactionStatus status) {
+        List<Outbox> outboxes = outboxRepository.findTop10ByProcessed(Boolean.FALSE)
+                .orElse(Collections.emptyList());
+
+        if (!outboxes.isEmpty()) {
+            for (Outbox outbox : outboxes) {
+                Order order = orderRepository.findWithOrderItemsById(outbox.getOrderId())
+                        .orElseThrow(() -> new OrderNotFoundException(outbox.getOrderId()));
+                sendEventToKafka(outbox, order);
+                outbox.setProcessed(Boolean.TRUE);
+                outboxRepository.save(outbox);
+            }
+            return true;
+        }
+        return false;
     }
 
     private void sendEventToKafka(Outbox outbox, Order order) {
