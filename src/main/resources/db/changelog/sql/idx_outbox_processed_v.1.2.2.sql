@@ -1,0 +1,1 @@
+CREATE INDEX idx_outbox_processed ON outbox (processed);

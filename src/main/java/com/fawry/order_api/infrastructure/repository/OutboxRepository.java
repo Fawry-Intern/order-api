@@ -12,11 +12,14 @@ import java.util.Optional;
 @Repository
 public interface OutboxRepository extends JpaRepository<Outbox, Long> {
 
-    Optional<List<Outbox>> findTop10ByProcessed(Boolean processed);
+
+    Optional<List<Outbox>> findTop10ByProcessedOrderByCreatedAt(Boolean processed);
 
     @Modifying
     @Query("""
-            UPDATE Outbox o SET o.processed = :outboxProcessing WHERE o.id IN :ids
+            UPDATE Outbox o
+            SET o.processed = :outboxProcessing
+            WHERE o.id IN :ids
             """)
     void updateProcessedByIds(@Param("outboxProcessing") Boolean processed, @Param("ids") List<Long> outboxIds);
 }
