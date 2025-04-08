@@ -1,6 +1,6 @@
 package com.fawry.order_api.application.usecase;
 
-import com.fawry.kafka.events.OrderCancelNotificationEvent;
+import com.fawry.order_api.domain.event.OrderCancelNotificationEvent;
 import com.fawry.order_api.domain.model.Outbox;
 import com.fawry.order_api.domain.service.saga.OrderCompensationSagaService;
 import com.fawry.order_api.dto.dtos.DiscountDTO;

@@ -1,14 +1,11 @@
 package com.fawry.order_api.infrastructure.outbox;
 
-import com.fawry.kafka.events.OrderCreatedEventDTO;
 import com.fawry.order_api.application.service.OutboxService;
 import com.fawry.order_api.domain.model.Order;
 import com.fawry.order_api.domain.model.Outbox;
 import com.fawry.order_api.exception.OrderNotFoundException;
-import com.fawry.order_api.infrastructure.messaging.producer.impl.OrderEventProducer;
 import com.fawry.order_api.infrastructure.repository.OrderRepository;
 import com.fawry.order_api.infrastructure.repository.OutboxRepository;
-import com.fawry.order_api.mapper.OutboxMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,16 +15,18 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-class ScheduledOutboxEventProcessor implements OutboxService {
-    private final OrderEventProducer<Object> producer;
+class OutboxPollingProcessor implements OutboxService {
     private final OutboxRepository outboxRepository;
-    private final OutboxMapper outboxMapper;
     private final OrderRepository orderRepository;
     private final TransactionTemplate transactionTemplate;
+    private final OutboxEventKafkaPublisher outboxEventKafkaPublisher;
 
     @Override
     @Scheduled(fixedDelayString = "${configuration.kafka.scheduled}")
@@ -43,26 +42,30 @@ class ScheduledOutboxEventProcessor implements OutboxService {
                 .orElse(Collections.emptyList());
 
         if (!outboxes.isEmpty()) {
-            List<Long> successfulOutboxIds = new ArrayList<>();
+            List<CompletableFuture<Long>> futures = new ArrayList<>();
+
             for (Outbox outbox : outboxes) {
-                Order order = orderRepository.findWithOrderItemsById(outbox.getOrderId())
-                        .orElseThrow(() -> new OrderNotFoundException(outbox.getOrderId()));
-                sendEventToKafka(outbox, order);
-                successfulOutboxIds.add(outbox.getId());
+                try {
+                    Order order = orderRepository.findWithOrderItemsById(outbox.getOrderId())
+                            .orElseThrow(() -> new OrderNotFoundException(outbox.getOrderId()));
+                    futures.add(outboxEventKafkaPublisher.sendEventToKafkaAsync(outbox, order));
+                } catch (Exception e) {
+                    log.error("Failed to prepare event for Kafka: {}. Error: {}", outbox.getId(), e.getMessage());
+                }
             }
-            outboxRepository.updateProcessedByIds(Boolean.TRUE, successfulOutboxIds);
-            return true;
+
+            List<Long> successfulIds = futures.stream()
+                    .map(CompletableFuture::join)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+
+            if (!successfulIds.isEmpty()) {
+                outboxRepository.updateProcessedByIds(Boolean.TRUE, successfulIds);
+                return true;
+            }
         }
+
         return false;
     }
 
-    private void sendEventToKafka(Outbox outbox, Order order) {
-        try {
-            OrderCreatedEventDTO orderCreatedEventDTO = outboxMapper.mapToOrderCreatedEventDTO(outbox, order);
-            log.info("Processing to poll OutboxEvent from database to kafka: {}", orderCreatedEventDTO);
-            producer.processEventProducer(orderCreatedEventDTO, order.hashCode());
-        }catch (Exception e) {
-            throw e;
-        }
-    }
 }

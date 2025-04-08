@@ -1,6 +1,6 @@
 package com.fawry.order_api.mapper;
 
-import com.fawry.kafka.events.OrderCreatedEventDTO;
+import com.fawry.order_api.domain.event.OrderCreatedEventDTO;
 import com.fawry.order_api.domain.model.Order;
 import com.fawry.order_api.domain.model.OrderItem;
 import com.fawry.order_api.domain.model.Outbox;

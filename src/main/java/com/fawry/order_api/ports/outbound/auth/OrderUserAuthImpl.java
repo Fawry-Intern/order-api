@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import java.util.Objects;
 
 
 @Service
@@ -18,31 +19,29 @@ public class OrderUserAuthImpl implements OrderUserAuth {
     public Long parseUserId() {
         log.info("Thread name: {}", Thread.currentThread().getName());
 
-//        String userId=httpServletRequest.getHeader("UserId");
-//
-//        if (userId == null) {
-//            throw new AuthenticationUserException("UserId header is missing",);
-//        }
-//
-//        Long authUserId;
-//
-//        try {
-//            authUserId = Long.parseLong(userId);
-//        } catch (Exception e) {
-//            throw new AuthenticationUserException("Invalid UserId format");
-//        }
-//        return authUserId;
-        return 1L;
+        String userId=httpServletRequest.getHeader("UserId");
+
+        if (userId == null) {
+            throw new AuthenticationUserException("UserId header is missing");
+        }
+
+        Long authUserId;
+
+        try {
+            authUserId = Long.parseLong(userId);
+        } catch (Exception e) {
+            throw new AuthenticationUserException("Invalid UserId format");
+        }
+        return authUserId;
     }
 
     @Override
     public String parseUserEmail() {
-//        String userEmail = httpServletRequest.getHeader("Email");
-//
-//        if (Objects.equals(userEmail, null))
-//            throw new AuthenticationUserException("Email header is missing");
-//
-//        return userEmail;
-        return "muhammadhussein2312@gmail.com";
+        String userEmail = httpServletRequest.getHeader("Email");
+
+        if (Objects.equals(userEmail, null))
+            throw new AuthenticationUserException("Email header is missing");
+
+        return userEmail;
     }
 }

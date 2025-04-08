@@ -1,7 +1,6 @@
 package com.fawry.order_api.infrastructure.messaging.producer.impl;
 
-import com.fawry.kafka.events.OrderCreatedEventDTO;
-import com.fawry.order_api.exception.OrderProcessingException;
+import com.fawry.order_api.domain.event.OrderCreatedEventDTO;
 import com.fawry.order_api.infrastructure.messaging.producer.OrderCreatedEventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
