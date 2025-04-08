@@ -1,11 +1,9 @@
 package com.fawry.order_api.application.usecase;
 
 import com.fawry.kafka.events.OrderCancelNotificationEvent;
-import com.fawry.kafka.events.OrderCreatedEventDTO;
 import com.fawry.order_api.domain.model.Outbox;
 import com.fawry.order_api.domain.service.saga.OrderCompensationSagaService;
 import com.fawry.order_api.dto.dtos.DiscountDTO;
-import com.fawry.order_api.dto.dtos.OrderCreationResponse;
 import com.fawry.order_api.dto.enums.OrderSagaStatus;
 import com.fawry.order_api.exception.*;
 import com.fawry.order_api.infrastructure.messaging.producer.impl.OrderEventProducer;
@@ -56,7 +54,7 @@ public class OrderSagaUseCase implements OrderCreationSagaService, OrderCancella
     @Override
     @Async("orderTaskExecutor")
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void createOrderSaga(OrderRequest request) {
+    public CompletableFuture<Void> createOrderSaga(OrderRequest request) {
         Long userId = orderUserAuth.parseUserId();
         Order order = createAndSaveOrder(request, userId);
 
@@ -71,6 +69,8 @@ public class OrderSagaUseCase implements OrderCreationSagaService, OrderCancella
         }
 
         saveOrderEventToDatabase(request, order, OrderSagaStatus.CREATED, getCustomerEmail());
+        return CompletableFuture.completedFuture(null);
+
     }
 
     private Order createAndSaveOrder(OrderRequest request, Long userId) {

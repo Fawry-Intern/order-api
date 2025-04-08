@@ -15,7 +15,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
-
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -36,7 +36,6 @@ class ScheduledOutboxEventProcessor implements OutboxService {
         while (isFailedProcessing) {
             isFailedProcessing = Boolean.TRUE.equals(transactionTemplate.execute(this::doInTransaction));
         }
-
     }
 
     private Boolean doInTransaction(TransactionStatus status) {
@@ -44,21 +43,27 @@ class ScheduledOutboxEventProcessor implements OutboxService {
                 .orElse(Collections.emptyList());
 
         if (!outboxes.isEmpty()) {
+            List<Long> successfulOutboxIds = new ArrayList<>();
             for (Outbox outbox : outboxes) {
                 Order order = orderRepository.findWithOrderItemsById(outbox.getOrderId())
                         .orElseThrow(() -> new OrderNotFoundException(outbox.getOrderId()));
                 sendEventToKafka(outbox, order);
-                outbox.setProcessed(Boolean.TRUE);
-                outboxRepository.save(outbox);
+                successfulOutboxIds.add(outbox.getId());
             }
+            outboxRepository.updateProcessedByIds(Boolean.TRUE, successfulOutboxIds);
             return true;
         }
         return false;
     }
 
     private void sendEventToKafka(Outbox outbox, Order order) {
-        OrderCreatedEventDTO orderCreatedEventDTO = outboxMapper.mapToOrderCreatedEventDTO(outbox, order);
-        log.info("Processing to poll OutboxEvent from database to kafka: {}", orderCreatedEventDTO);
-        producer.processEventProducer(orderCreatedEventDTO, order.hashCode());
+        try {
+            OrderCreatedEventDTO orderCreatedEventDTO = outboxMapper.mapToOrderCreatedEventDTO(outbox, order);
+            log.info("Processing to poll OutboxEvent from database to kafka: {}", orderCreatedEventDTO);
+            producer.processEventProducer(orderCreatedEventDTO, order.hashCode());
+        }catch (Exception e) {
+            throw e;
+        }
+
     }
 }
