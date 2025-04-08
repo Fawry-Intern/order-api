@@ -13,6 +13,11 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
+      order_inserts: true
+      order_updates: true
+      jdbc:
+        batch_size: 50
+        batch_versioned_data: true
     show-sql: true
     properties:
       hibernate:
@@ -38,6 +43,8 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
+        properties:
+          metadata.fetch.timeout.ms: 1000
         spring.json.add.type.headers: true
         spring.json.type.mapping: orderCreatedEventDTO:com.fawry.kafka.events.OrderCreatedEventDTO, orderCancelNotificationEvent:com.fawry.kafka.events.OrderCancelNotificationEvent
   redis:

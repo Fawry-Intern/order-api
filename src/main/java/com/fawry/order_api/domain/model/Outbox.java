@@ -4,10 +4,7 @@ import com.fawry.order_api.dto.enums.OrderSagaStatus;
 import com.fawry.order_api.dto.enums.SagaEventType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.math.BigDecimal;
@@ -17,6 +14,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @Setter
 @Getter
+@ToString
 @Entity
 @Table(name = "outbox")
 @EntityListeners(AuditingEntityListener.class)

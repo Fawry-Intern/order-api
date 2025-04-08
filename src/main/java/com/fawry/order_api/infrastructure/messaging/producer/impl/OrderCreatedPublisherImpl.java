@@ -1,6 +1,7 @@
 package com.fawry.order_api.infrastructure.messaging.producer.impl;
 
 import com.fawry.kafka.events.OrderCreatedEventDTO;
+import com.fawry.order_api.exception.OrderProcessingException;
 import com.fawry.order_api.infrastructure.messaging.producer.OrderCreatedEventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -29,13 +30,13 @@ public class OrderCreatedPublisherImpl implements OrderCreatedEventPublisher {
 
     @Override
     public void publishOrderCreatedEvent(OrderCreatedEventDTO createdEvent, int orderHash) {
-        Message<OrderCreatedEventDTO> message =
-                MessageBuilder
-                        .withPayload(createdEvent)
-                        .setHeader(TOPIC, TOPIC_NAME)
-                        .setHeader(PARTITION, 0)
-                        .build();
-        kafkaTemplate.send(message);
+            Message<OrderCreatedEventDTO> message =
+                    MessageBuilder
+                            .withPayload(createdEvent)
+                            .setHeader(TOPIC, TOPIC_NAME)
+                            .setHeader(PARTITION, 0)
+                            .build();
+            kafkaTemplate.send(message);
     }
 
 }
