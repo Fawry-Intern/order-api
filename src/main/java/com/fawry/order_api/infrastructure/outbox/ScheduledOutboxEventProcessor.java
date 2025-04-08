@@ -39,7 +39,7 @@ class ScheduledOutboxEventProcessor implements OutboxService {
     }
 
     private Boolean doInTransaction(TransactionStatus status) {
-        List<Outbox> outboxes = outboxRepository.findTop10ByProcessed(Boolean.FALSE)
+        List<Outbox> outboxes = outboxRepository.findTop10ByProcessedOrderByCreatedAt(Boolean.FALSE)
                 .orElse(Collections.emptyList());
 
         if (!outboxes.isEmpty()) {
@@ -64,6 +64,5 @@ class ScheduledOutboxEventProcessor implements OutboxService {
         }catch (Exception e) {
             throw e;
         }
-
     }
 }

@@ -1,0 +1,1 @@
+CREATE INDEX idx_outbox_processed_created_at ON outbox (processed, created_at);

@@ -72,7 +72,7 @@ public class Outbox {
     @NotNull
     @Column(name = "created_at", nullable = false)
     @CreatedDate
-    private Instant orderDate;
+    private Instant createdAt;
 
     @NotNull
     @Column(name = "processed", nullable = false)
