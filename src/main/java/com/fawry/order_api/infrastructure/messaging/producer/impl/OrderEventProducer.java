@@ -1,7 +1,7 @@
 package com.fawry.order_api.infrastructure.messaging.producer.impl;
 
-import com.fawry.kafka.events.OrderCancelNotificationEvent;
-import com.fawry.kafka.events.OrderCreatedEventDTO;
+import com.fawry.order_api.domain.event.OrderCancelNotificationEvent;
+import com.fawry.order_api.domain.event.OrderCreatedEventDTO;
 import com.fawry.order_api.infrastructure.messaging.producer.OrderCancelEventPublisher;
 import com.fawry.order_api.infrastructure.messaging.producer.OrderCreatedEventPublisher;
 import lombok.RequiredArgsConstructor;

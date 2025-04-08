@@ -1,6 +1,6 @@
 package com.fawry.order_api.infrastructure.messaging.producer;
 
-import com.fawry.kafka.events.OrderCancelNotificationEvent;
+import com.fawry.order_api.domain.event.OrderCancelNotificationEvent;
 
 
 public interface OrderCancelEventPublisher {

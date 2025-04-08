@@ -1,6 +1,6 @@
 package com.fawry.order_api.infrastructure.messaging.consumer;
 
-import com.fawry.kafka.events.OrderCanceledEventDTO;
+import com.fawry.order_api.domain.event.OrderCanceledEventDTO;
 import com.fawry.order_api.domain.service.saga.OrderCompensationSagaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

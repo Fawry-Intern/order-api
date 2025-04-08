@@ -53,4 +53,13 @@
         <sqlFile path="db/changelog/sql/idx_outbox_processed_created_at_v.2.2.2.sql"/>
     </changeSet>
 
+    <changeSet id="add_column_retry_count_outbox_tbl" author="muhammad hussein" context="development,staging,production">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="outbox" columnName="retry_count"/>
+            </not>
+        </preConditions>
+        <sqlFile path="db/changelog/sql/retry_count_column_outbox_tbl_v.2.2.3.sql"/>
+    </changeSet>
+
 </databaseChangeLog>

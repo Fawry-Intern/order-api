@@ -1,4 +1,4 @@
-package com.fawry.kafka.events;
+package com.fawry.order_api.domain.event;
 
 import com.fawry.order_api.dto.dtos.AddressDetails;
 import com.fawry.order_api.dto.dtos.OrderItemDTO;

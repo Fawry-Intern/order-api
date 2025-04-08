@@ -77,6 +77,9 @@ public class Outbox {
     @NotNull
     @Column(name = "processed", nullable = false)
     private Boolean processed;
+
+    @Column(name = "retry_count", nullable = false)
+    private int retryCount;
 }
 
 

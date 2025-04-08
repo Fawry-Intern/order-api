@@ -2,7 +2,7 @@ package com.fawry.order_api.mapper;
 
 import com.fawry.order_api.dto.dtos.*;
 import com.fawry.order_api.dto.enums.SagaEventType;
-import com.fawry.kafka.events.OrderCreatedEventDTO;
+import com.fawry.order_api.domain.event.OrderCreatedEventDTO;
 import com.fawry.order_api.dto.enums.OrderSagaStatus;
 import com.fawry.order_api.domain.model.Money;
 import com.fawry.order_api.domain.model.Order;

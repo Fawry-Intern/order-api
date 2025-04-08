@@ -27,4 +27,15 @@ public class AsyncConfig {
         executor.initialize();
         return executor;
     }
+
+    @Bean(name = "outboxEventProcessorExecutor")
+    public ThreadPoolTaskExecutor outboxEventProcessorExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(20);
+        executor.setQueueCapacity(100);
+        executor.setThreadNamePrefix("OutboxEventProcessor-");
+        executor.initialize();
+        return executor;
+    }
 }

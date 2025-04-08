@@ -35,18 +35,22 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         allow.auto.create.topics: true
-        spring.json.trusted.packages: "com.fawry.kafka.events"
-        spring.json.type.mapping: orderCreatedEventDTO:com.fawry.kafka.events.OrderCanceledEventDTO
+        spring.json.trusted.packages: "*"
+        spring.json.type.mapping:
+          orderCanceledEventDTO:com.fawry.order_api.domain.event.OrderCanceledEventDTO
 
     producer:
       bootstrap-servers: localhost:9092
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
-        properties:
-          metadata.fetch.timeout.ms: 1000
         spring.json.add.type.headers: true
-        spring.json.type.mapping: orderCreatedEventDTO:com.fawry.kafka.events.OrderCreatedEventDTO, orderCancelNotificationEvent:com.fawry.kafka.events.OrderCancelNotificationEvent
+        spring.json.type.mapping:
+          orderCreatedEventDTO:com.fawry.order_api.domain.event.OrderCreatedEventDTO,
+          orderCancelNotificationEvent:com.fawry.order_api.domain.event.OrderCancelNotificationEvent
+
+        acks: all
+        retries: 3
   redis:
     host: localhost
     port: 6381
