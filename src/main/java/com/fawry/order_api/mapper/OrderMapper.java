@@ -45,6 +45,7 @@ public class OrderMapper {
                 .orderId(order.getOrderId())
                 .orderAmount(order.getPaymentAmount().getAmount())
                 .couponCode(order.getCouponCode())
+                .userId(order.getUserId())
                 .build();
     }
 
@@ -70,6 +71,7 @@ public class OrderMapper {
 
         );
     }
+
 
 
 }

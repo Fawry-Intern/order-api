@@ -31,6 +31,9 @@ public class Order {
     @Setter
     @Column(name = "user_id", nullable = false)
     private Long userId;
+    @Setter
+    @Column(name = "user_email", nullable = false)
+    private String userEmail;
 
     @Embedded
     @AttributeOverrides({
@@ -58,11 +61,13 @@ public class Order {
     }
 
     public static Order newInstance(Long userId,
+                             String userEmail,
                              Money paymentAmount,
                              String couponCode,
                              Set<OrderItem> orderItems){
         Order order = new Order();
         order.userId = userId;
+        order.userEmail = userEmail;
         order.paymentAmount = validateTotalAmount(paymentAmount, orderItems);
         order.couponCode = couponCode;
         order.status = CREATED;

@@ -1,5 +1,5 @@
 server:
-  port: 6061
+  port: 1011
 eureka:
   client:
     serviceUrl:
@@ -51,9 +51,10 @@ spring:
 
         acks: all
         retries: 3
-  redis:
-    host: localhost
-    port: 6381
+  data:
+    redis:
+      host: localhost
+      port: 6379
 redis:
   job:
     queue:

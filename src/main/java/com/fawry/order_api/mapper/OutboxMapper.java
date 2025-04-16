@@ -18,13 +18,13 @@ import java.util.List;
 public class OutboxMapper {
 
 
-    public Outbox mapToOutbox(OrderRequest request, Order order, OrderSagaStatus status, String customerEmail, Outbox outbox) {
+    public Outbox mapToOutbox(OrderRequest request, Order order, Outbox outbox) {
 
             outbox.setOrderId(order.getOrderId());
             outbox.setStatus(OrderSagaStatus.CREATED);
             outbox.setCustomerName(request.customerName());
             outbox.setCustomerContact(request.customerContact());
-            outbox.setCustomerEmail(customerEmail);
+            outbox.setCustomerEmail(request.customerEmail());
             outbox.setSagaEventType(SagaEventType.ORDER_CREATED);
             outbox.setPaymentAmount(order.getPaymentAmount().getAmount());
             outbox.setNumber(request.paymentMethod().details().getNumber());
@@ -34,7 +34,7 @@ public class OutboxMapper {
             outbox.setCity(request.addressDetails().getCity());
             outbox.setAddress(request.addressDetails().getAddress());
             outbox.setProcessed(false);
-            outbox.setUserId(order.getUserId());
+            outbox.setUserId(request.customerId());
             outbox.setCity(request.addressDetails().getCity());
             return outbox;
     }

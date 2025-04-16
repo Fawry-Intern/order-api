@@ -1,6 +1,7 @@
 package com.fawry.order_api.infrastructure.jobqueue;
 
 import com.fawry.order_api.dto.dtos.OrderCreationJob;
+
 import com.fawry.order_api.dto.dtos.OrderRequest;
 import com.fawry.order_api.mapper.OrderMapper;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ public class OrderJobProducer {
     @Async("orderTaskExecutor")
     public CompletableFuture<OrderCreationJob> addJob(OrderRequest job) {
         log.info("Thread name: {}", Thread.currentThread().getName());
+        log.info("job ",job.toString());
         redis.opsForList().leftPush(QUEUE_NAME, job);
         return CompletableFuture.completedFuture(orderMapper.mapToOrderCreationJob(job));
     }

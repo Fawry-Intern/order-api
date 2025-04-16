@@ -21,4 +21,7 @@ public class ConsumeCouponRequestDTO {
     @Positive(message = "Value should be positive")
     private BigDecimal orderAmount;
 
+    @NotNull(message = "User Id must not be blank")
+    private Long userId;
+
 }

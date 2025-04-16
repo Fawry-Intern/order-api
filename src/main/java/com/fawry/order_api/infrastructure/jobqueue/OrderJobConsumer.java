@@ -21,10 +21,10 @@ public class OrderJobConsumer {
     private final static int MAX_RETRIES = 3;
 
 
-    @Scheduled(fixedRate = 1000)
+    @Scheduled(fixedRate = 10000)
     public void dequeue() throws ExecutionException, InterruptedException {
         final String orderCreationQueue = PriorityOrderLevel.HIGH.getQueueName();
-        OrderRequest job = (OrderRequest) redis.opsForList().rightPop(orderCreationQueue);
+       OrderRequest job = (OrderRequest) redis.opsForList().rightPop(orderCreationQueue);
 
         if (job != null) {
             try {

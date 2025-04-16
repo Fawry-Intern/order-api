@@ -1,11 +1,11 @@
 package com.fawry.order_api.api.controller;
 
-import com.fawry.order_api.domain.service.saga.OrderCreationSagaService;
 import com.fawry.order_api.dto.dtos.OrderCreationJob;
 import com.fawry.order_api.dto.dtos.OrderCreationResponse;
 import com.fawry.order_api.dto.dtos.OrderRequest;
 import com.fawry.order_api.application.service.OrderService;
 import com.fawry.order_api.infrastructure.jobqueue.OrderJobProducer;
+import com.fawry.order_api.mapper.OrderMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -25,15 +25,15 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @RestController
-@RequestMapping("api/orders/")
+@RequestMapping("api/orders")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Order API", description = "Endpoints for managing orders in the Order Service")
 public class OrderController {
 
     private final OrderService orderService;
-    private final OrderCreationSagaService orderCreationSaga;
     private final OrderJobProducer orderJobProducer;
+    private final OrderMapper orderMapper;
 
     @PostMapping
     @Operation(summary = "Create a new order", description = "Creates a new order by adding it to the job queue for asynchronous processing.")
@@ -46,10 +46,21 @@ public class OrderController {
             @ApiResponse(responseCode = "500", description = "Internal server error",
                     content = @Content)
     })
-    public ResponseEntity<OrderCreationJob> createOrder(@Valid @RequestBody OrderRequest request) throws ExecutionException, InterruptedException {
-        log.info("Thread name is {} ", Thread.currentThread().getName());
-        return  ResponseEntity.created(URI.create("orders")).body(orderJobProducer.addJob(request).get());
+    public ResponseEntity<OrderCreationJob> createOrder(
+            @Valid @RequestBody OrderRequest request,
+            @RequestHeader("UserId") Long userId,
+            @RequestHeader("Email") String email
+    ) throws ExecutionException, InterruptedException {
+
+        log.info("Thread name is {}", Thread.currentThread().getName());
+        OrderRequest enrichedRequest = request.toBuilder()
+                .customerId(userId)
+                .customerEmail(email)
+                .build();
+
+        return ResponseEntity.created(URI.create("orders")).body(orderJobProducer.addJob(enrichedRequest).get());
     }
+
 
     @GetMapping("/search-by-customer")
     @Operation(summary = "Search orders by user ID and date range", description = "Retrieves a paginated list of orders for a specific user within a date range.")

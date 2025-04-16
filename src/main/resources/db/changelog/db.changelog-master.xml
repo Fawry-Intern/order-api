@@ -61,5 +61,13 @@
         </preConditions>
         <sqlFile path="db/changelog/sql/retry_count_column_outbox_tbl_v.2.2.3.sql"/>
     </changeSet>
+    <changeSet id="add_column_user_email_orders_tbl" author="mustafatarek" context="development,staging,production">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="orders" columnName="user_email"/>
+            </not>
+        </preConditions>
+        <sqlFile path="db/changelog/sql/user_email_column_orders_tbl_v.2.2.4.sql"/>
+    </changeSet>
 
 </databaseChangeLog>

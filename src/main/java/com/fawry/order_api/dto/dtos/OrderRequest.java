@@ -37,7 +37,10 @@ public record OrderRequest(
         List<OrderItemDTO> orderItems,
 
         @NotNull(message = "Payment method must not be null")
-        PaymentMethod paymentMethod
+        PaymentMethod paymentMethod,
+
+        String customerEmail,
+        Long customerId
 ) implements Serializable {
 
     public boolean isCouponCodeValid() {

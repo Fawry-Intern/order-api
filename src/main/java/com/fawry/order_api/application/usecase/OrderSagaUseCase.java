@@ -4,13 +4,13 @@ import com.fawry.order_api.domain.event.OrderCancelNotificationEvent;
 import com.fawry.order_api.domain.model.Outbox;
 import com.fawry.order_api.domain.service.saga.OrderCompensationSagaService;
 import com.fawry.order_api.dto.dtos.DiscountDTO;
+import com.fawry.order_api.dto.dtos.OrderRequest;
 import com.fawry.order_api.dto.enums.OrderSagaStatus;
 import com.fawry.order_api.exception.*;
 import com.fawry.order_api.infrastructure.messaging.producer.impl.OrderEventProducer;
 import com.fawry.order_api.domain.service.saga.OrderCancellationSagaService;
 import com.fawry.order_api.domain.service.saga.OrderCreationSagaService;
 import com.fawry.order_api.dto.dtos.OrderItemDTO;
-import com.fawry.order_api.dto.dtos.OrderRequest;
 import com.fawry.order_api.domain.model.Money;
 import com.fawry.order_api.domain.model.Order;
 import com.fawry.order_api.domain.model.OrderItem;
@@ -19,7 +19,6 @@ import com.fawry.order_api.infrastructure.transaction.TransactionExecutor;
 import com.fawry.order_api.mapper.OrderMapper;
 import com.fawry.order_api.mapper.OutboxMapper;
 import com.fawry.order_api.ports.outbound.coupon_service.OrderDiscountService;
-import com.fawry.order_api.ports.outbound.auth.OrderUserAuth;
 import com.fawry.order_api.infrastructure.repository.OrderRepository;
 import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +32,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
 @Service
 @RequiredArgsConstructor
@@ -46,8 +44,6 @@ public class OrderSagaUseCase implements OrderCreationSagaService, OrderCancella
     private final OrderDiscountService couponService;
     private final TransactionExecutor transactionExecutor;
     private final OrderEventProducer<Object> producer;
-    private final OrderUserAuth orderUserAuth;
-    private final Executor orderTaskExecutor;
     private final OutboxMapper outboxMapper;
 
 
@@ -55,8 +51,8 @@ public class OrderSagaUseCase implements OrderCreationSagaService, OrderCancella
     @Async("orderTaskExecutor")
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public CompletableFuture<Void> createOrderSaga(OrderRequest request) {
-        Long userId = orderUserAuth.parseUserId();
-        Order order = createAndSaveOrder(request, userId);
+       /* Long userId = orderUserAuth.parseUserId();*/
+        Order order = createAndSaveOrder(request);
 
         try {
             checkCouponValidate(request);
@@ -64,17 +60,17 @@ public class OrderSagaUseCase implements OrderCreationSagaService, OrderCancella
             updateOrderWithCouponDiscountTransaction(order, discountDto);
         }catch (Exception e) {
             log.error("Saga failed: {}", e.getMessage());
-            compensateFailedStartingSaga(order, e, getCustomerEmail());
+            compensateFailedStartingSaga(order, e, order.getUserEmail());
             throw new OrderProcessingException("Failed to proccessing order", e.getMessage());
         }
 
-        saveOrderEventToDatabase(request, order, OrderSagaStatus.CREATED, getCustomerEmail());
+        saveOrderEventToDatabase(request, order, OrderSagaStatus.CREATED, order.getUserEmail());
         return CompletableFuture.completedFuture(null);
     }
 
-    private Order createAndSaveOrder(OrderRequest request, Long userId) {
-        var order = newInstance(request, userId);
-        log.info("Saving order for userId: {} in thread: {}", userId, Thread.currentThread().getName());
+    private Order createAndSaveOrder(   OrderRequest request) {
+        var order = newInstance(request);
+        log.info("Saving order for userId: {} in thread: {}", request.customerId(), Thread.currentThread().getName());
         saveOrderInDatabase(order);
         log.info("Order saved successfully with orderId: {}", order.getOrderId());
         return order;
@@ -88,15 +84,16 @@ public class OrderSagaUseCase implements OrderCreationSagaService, OrderCancella
         }
     }
 
-    private Order newInstance(OrderRequest request, Long userId) {
-        return Order.newInstance(userId, Money.of(request.totalAmount()), request.couponCode(), mapToOrderItem(request.orderItems())
+    private Order newInstance(OrderRequest request) {
+        return Order.newInstance(request.customerId(),request.customerEmail(), Money.of(request.totalAmount())
+                , request.couponCode(), mapToOrderItem(request.orderItems())
         );
     }
 
     private void saveOrderEventToDatabase(OrderRequest request, Order order, OrderSagaStatus status, String customerEmail) {
         Outbox outbox = new Outbox();
         try {
-            outbox = outboxMapper.mapToOutbox(request, order, status, customerEmail, outbox);
+            outbox = outboxMapper.mapToOutbox(request, order, outbox);
             outboxRepository.save(outbox);
         }catch (Exception e) {
             throw new OrderProcessingException("Error processing order event creation", e.getMessage());
@@ -183,9 +180,7 @@ public class OrderSagaUseCase implements OrderCreationSagaService, OrderCancella
                 .orElseThrow(() -> new OrderNotFoundException(orderId));
     }
 
-    public String getCustomerEmail() {
-        return orderUserAuth.parseUserEmail();
-    }
+
 
 }
 
