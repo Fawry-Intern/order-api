@@ -65,12 +65,11 @@ public class OrderSagaUseCase implements OrderCreationSagaService, OrderCancella
         }catch (Exception e) {
             log.error("Saga failed: {}", e.getMessage());
             compensateFailedStartingSaga(order, e, getCustomerEmail());
-            throw e;
+            throw new OrderProcessingException("Failed to proccessing order", e.getMessage());
         }
 
         saveOrderEventToDatabase(request, order, OrderSagaStatus.CREATED, getCustomerEmail());
         return CompletableFuture.completedFuture(null);
-
     }
 
     private Order createAndSaveOrder(OrderRequest request, Long userId) {
@@ -147,30 +146,20 @@ public class OrderSagaUseCase implements OrderCreationSagaService, OrderCancella
 
     @Override
     @Async("orderTaskExecutor")
-    public CompletableFuture<Void> cancelOrderSaga(Long orderId, String reason, String customerEmail) {
-        CompletableFuture<Void> updateOrderFuture = CompletableFuture.runAsync(() -> {
+    public void cancelOrderSaga(Long orderId, String reason, String customerEmail) {
+
             transactionExecutor.executeInTransaction(() -> {
                 Order order = findOrderById(orderId);
                 order.cancel();
                 return order;
             });
-        });
 
-        CompletableFuture<Void> sendNotificationFuture = updateOrderFuture.thenRunAsync(() -> {
             try {
                 sendCancellationNotification(orderId, reason, customerEmail);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to send cancellation notification for orderId: " + orderId, e);
             }
-        }, orderTaskExecutor);
 
-        return CompletableFuture.allOf(updateOrderFuture, sendNotificationFuture)
-                .handle((result, ex) -> {
-                    if (ex != null) {
-                        throw new RuntimeException("Cancellation saga failed for orderId: " + orderId, ex.getCause());
-                    }
-                    return null;
-                });
     }
 
     @Override

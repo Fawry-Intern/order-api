@@ -37,5 +37,4 @@ public class OrderCreatedPublisherImpl implements OrderCreatedEventPublisher {
                             .build();
             kafkaTemplate.send(message);
     }
-
 }

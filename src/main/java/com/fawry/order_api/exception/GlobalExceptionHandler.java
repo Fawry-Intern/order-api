@@ -11,7 +11,7 @@ import org.springframework.web.context.request.WebRequest;
 
 import java.util.stream.Collectors;
 
-@RestControllerAdvice
+//@RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
 
