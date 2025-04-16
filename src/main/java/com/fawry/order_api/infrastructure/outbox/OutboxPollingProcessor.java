@@ -8,6 +8,7 @@ import com.fawry.order_api.infrastructure.repository.OrderRepository;
 import com.fawry.order_api.infrastructure.repository.OutboxRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RedissonClient;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionStatus;
@@ -27,6 +28,7 @@ class OutboxPollingProcessor implements OutboxService {
     private final OrderRepository orderRepository;
     private final TransactionTemplate transactionTemplate;
     private final OutboxEventKafkaPublisher outboxEventKafkaPublisher;
+    private final RedissonClient redissonClient;
 
     @Override
     @Scheduled(fixedDelayString = "${configuration.kafka.scheduled}")

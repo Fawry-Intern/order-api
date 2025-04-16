@@ -14,12 +14,11 @@ public class TransactionExecutor  {
 
     private final PlatformTransactionManager transactionManager;
 
-    public  <T> T executeInTransaction(Supplier<T> operation) {
+    public  <T> void executeInTransaction(Supplier<T> operation) {
         TransactionStatus status = transactionManager.getTransaction(new DefaultTransactionDefinition());
         try {
             T result = operation.get();
             transactionManager.commit(status);
-            return result;
         } catch (Exception e) {
             transactionManager.rollback(status);
             throw new RuntimeException("Transaction failed", e);
