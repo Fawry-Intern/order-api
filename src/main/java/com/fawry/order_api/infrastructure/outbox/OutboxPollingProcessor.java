@@ -8,6 +8,7 @@ import com.fawry.order_api.infrastructure.repository.OrderRepository;
 import com.fawry.order_api.infrastructure.repository.OutboxRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,13 +32,39 @@ class OutboxPollingProcessor implements OutboxService {
     private final OutboxEventKafkaPublisher outboxEventKafkaPublisher;
     private final RedissonClient redissonClient;
 
+    private static final String OUTBOX_PROCESSING_LOCK =
+            "outbox-processing-lock";
     @Override
     @Scheduled(fixedDelayString = "${configuration.kafka.scheduled}")
     public void eventProcessing() {
-        boolean isFailedProcessing = true;
-        while (isFailedProcessing) {
-            isFailedProcessing = Boolean.TRUE.equals(transactionTemplate.execute(this::doInTransaction));
+
+        RLock lock = redissonClient.getLock(OUTBOX_PROCESSING_LOCK);
+        boolean isLocked = false;
+
+        try {
+            isLocked = lock.tryLock(10, 30, TimeUnit.SECONDS);
+            if (!isLocked) {
+                log.info("Could not acquire outbox processing lock");
+                return;
+            }
+            boolean isFailedProcessing = true;
+            while (isFailedProcessing) {
+                isFailedProcessing = Boolean.TRUE.equals(transactionTemplate.execute(this::doInTransaction));
+            }
+        }catch (InterruptedException e) {
+            log.error("Interrupted while trying to acquire outbox processing lock", e);
+            Thread.currentThread().interrupt();
+        }finally {
+            if (isLocked) {
+                try {
+                    lock.unlock();
+                    log.info("Outbox processing lock released");
+                }catch (Exception e) {
+                    log.error("Error while trying to unlock outbox processing lock", e);
+                }
+            }
         }
+
     }
 
     private Boolean doInTransaction(TransactionStatus status) {

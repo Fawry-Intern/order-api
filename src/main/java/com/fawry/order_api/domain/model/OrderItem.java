@@ -47,7 +47,7 @@ public class OrderItem {
         return orderItem;
     }
 
-    public void addOrder(Order order) {
+    public void setOrder(Order order) {
         if (order == null) {
             throw new InvalidOrderException("Order cannot be null");
         }
