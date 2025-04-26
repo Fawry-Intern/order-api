@@ -73,7 +73,7 @@ public class Order {
         order.status = CREATED;
         order.orderItems = orderItems;
         orderItems.forEach((oi) -> {
-            oi.addOrder(order);
+            oi.setOrder(order);
             log.info("OrderItem is : {}", oi);
         });
         return order;

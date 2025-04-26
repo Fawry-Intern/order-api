@@ -16,7 +16,7 @@ spring:
       order_inserts: true
       order_updates: true
       jdbc:
-        batch_size: 50
+        batch_size: 10
         batch_versioned_data: true
     show-sql: true
     properties:
