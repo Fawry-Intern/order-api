@@ -5,6 +5,11 @@
     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     <changeSet id="create_order_sequence_id" author="muhammad hussein" context="development">
+        <preConditions>
+            <not>
+                <sequenceExists sequenceName="order_sequence"/>
+            </not>
+        </preConditions>
        <sqlFile path="db/changelog/sql/order_sequence_id_v.0.0.0.sql"/>
     </changeSet>
 
