@@ -53,7 +53,7 @@ spring:
         retries: 3
   redis:
     host: localhost
-    port: 6381
+    port: 6379
 redis:
   job:
    queue:
