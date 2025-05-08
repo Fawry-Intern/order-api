@@ -51,7 +51,6 @@ public class OrderSagaUseCase implements OrderCreationSagaService, OrderCancella
     @Async("orderTaskExecutor")
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public CompletableFuture<Void> createOrderSaga(OrderRequest request) {
-       /* Long userId = orderUserAuth.parseUserId();*/
         Order order = createAndSaveOrder(request);
 
         try {
@@ -179,8 +178,6 @@ public class OrderSagaUseCase implements OrderCreationSagaService, OrderCancella
         return repository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(orderId));
     }
-
-
 
 }
 

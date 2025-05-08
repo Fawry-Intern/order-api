@@ -47,18 +47,11 @@ public class OrderController {
                     content = @Content)
     })
     public ResponseEntity<OrderCreationJob> createOrder(
-            @Valid @RequestBody OrderRequest request,
-            @RequestHeader("UserId") Long userId,
-            @RequestHeader("Email") String email
+            @Valid @RequestBody OrderRequest request
     ) throws ExecutionException, InterruptedException {
 
         log.info("Thread name is {}", Thread.currentThread().getName());
-        OrderRequest enrichedRequest = request.toBuilder()
-                .customerId(userId)
-                .customerEmail(email)
-                .build();
-
-        return ResponseEntity.created(URI.create("orders")).body(orderJobProducer.addJob(enrichedRequest).get());
+        return ResponseEntity.created(URI.create("orders")).body(orderJobProducer.addJob(request).get());
     }
 
 
